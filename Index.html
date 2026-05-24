@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Список покупок | Чек-лист</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #e9eef3 0%, #dce3ec 100%);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+    }
+
+    /* карточка приложения */
+    .shopping-card {
+      max-width: 680px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(0px);
+      border-radius: 2rem;
+      box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+
+    /* заголовок */
+    .header {
+      background: #2c3e4e;
+      padding: 1.5rem 1.8rem;
+      color: white;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .header h1::before {
+      content: "🛒";
+      font-size: 1.8rem;
+    }
+
+    .sub {
+      margin-top: 0.4rem;
+      opacity: 0.8;
+      font-size: 0.85rem;
+    }
+
+    /* форма добавления */
+    .add-form {
+      padding: 1.5rem 1.8rem 1rem 1.8rem;
+      background: #ffffff;
+      border-bottom: 1px solid #eef2f5;
+    }
+
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      align-items: flex-end;
+    }
+
+    .input-group {
+      flex: 2;
+      min-width: 150px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #5b6e7c;
+      margin-bottom: 0.3rem;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      font-size: 1rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 1rem;
+      background: #fefefe;
+      transition: 0.2s;
+      outline: none;
+    }
+
+    .input-group input:focus {
+      border-color: #2c7da0;
+      box-shadow: 0 0 0 3px rgba(44, 125, 160, 0.2);
+    }
+
+    .btn-add {
+      background: #2c7da0;
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 0.8rem 1.6rem;
+      border-radius: 2rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .btn-add:hover {
+      background: #1f5e7a;
+      transform: scale(0.97);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* контент — список */
+    .list-container {
+      padding: 0.5rem 1.2rem 1.8rem 1.2rem;
+      background: #ffffff;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #4a6272;
+      margin: 0.5rem 0.8rem 1rem 0.8rem;
+      border-bottom: 1px dashed #e2edf2;
+      padding-bottom: 0.6rem;
+    }
+
+    .shopping-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    /* элемент списка */
+    .list-item {
+      background: #fbfdff;
+      border-radius: 1.2rem;
+      border: 1px solid #eef3f8;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.7rem 0.9rem 0.7rem 1rem;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .list-item:hover {
+      background: #fafeff;
+      border-color: #cbdde6;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    /* левая часть: чекбокс и инфо */
+    .item-info {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      flex-wrap: wrap;
+      flex: 5;
+    }
+
+    .custom-check {
+      display: flex;
+      align-items: center;
+    }
+
+    .item-checkbox {
+      width: 1.3rem;
+      height: 1.3rem;
+      cursor: pointer;
+      accent-color: #2c7da0;
+      transform: scale(1.1);
+      margin: 0;
+    }
+
+    .item-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .item-name {
+      font-weight: 600;
+      font-size: 1.05rem;
+      color: #1e2f3a;
+      word-break: break-word;
+    }
+
+    .item-quantity {
+      font-size: 0.75rem;
+      background: #eef2f7;
+      display: inline-block;
+      padding: 0.2rem 0.65rem;
+      border-radius: 30px;
+      color: #2c5a6e;
+      font-weight: 500;
+      width: fit-content;
+    }
+
+    /* если куплено — зачеркивание + приглушение */
+    .purchased .item-name {
+      text-decoration: line-through;
+      color: #8da1ae;
+    }
+
+    .purchased .item-quantity {
+      background: #e9ecef;
+      color: #8d9aa5;
+      text-decoration: line-through;
+    }
+
+    /* правые кнопки */
+    .item-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 0.4rem 0.6rem;
+      border-radius: 2rem;
+      transition: 0.2s;
+      color: #bc9a8c;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .delete-btn:hover {
+      background: #fef1ef;
+      color: #d9534f;
+      transform: scale(1.05);
+    }
+
+    /* пустое состояние */
+    .empty-message {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: #8fabb9;
+      background: #fafdff;
+      border-radius: 1.8rem;
+      font-size: 0.95rem;
+      border: 1px dashed #cfdfe8;
+    }
+
+    .empty-message span {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    /* небольшая адаптация */
+    @media (max-width: 480px) {
+      .form-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn-add {
+        justify-content: center;
+      }
+      .item-info {
+        gap: 0.6rem;
+      }
+      .item-actions {
+        gap: 0.2rem;
+      }
+      .shopping-card {
+        border-radius: 1.5rem;
+      }
+      .header {
+        padding: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="shopping-card">
+  <div class="header">
+    <h1>Маркет-лист</h1>
+    <div class="sub">✔️ Отмечай купленное • 🗑️ Удаляй лишнее</div>
+  </div>
+
+  <div class="add-form">
+    <div class="form-row">
+      <div class="input-group">
+        <label>📦 Товар</label>
+        <input type="text" id="productName" placeholder="Например: Яблоки" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label>🔢 Количество</label>
+        <input type="text" id="productQuantity" placeholder="2 кг / 1 шт." autocomplete="off">
+      </div>
+      <button class="btn-add" id="addButton">➕ Добавить</button>
+    </div>
+  </div>
+
+  <div class="list-container">
+    <div class="stats">
+      <span>📋 Всего: <strong id="totalCount">0</strong></span>
+      <span>✅ Куплено: <strong id="purchasedCount">0</strong></span>
+    </div>
+
+    <ul class="shopping-list" id="shoppingList">
+      <!-- динамические элементы будут здесь -->
+      <li class="empty-message">
+        <span>🛍️</span> Список пуст<br>Добавьте первый товар
+      </li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  // --- Модель данных ---
+  // Каждый элемент: { id, name, quantity, purchased }
+  let items = [];
+
+  // DOM элементы
+  const productNameInput = document.getElementById('productName');
+  const productQuantityInput = document.getElementById('productQuantity');
+  const addBtn = document.getElementById('addButton');
+  const shoppingListEl = document.getElementById('shoppingList');
+  const totalCountSpan = document.getElementById('totalCount');
+  const purchasedCountSpan = document.getElementById('purchasedCount');
+
+  // --- Вспомогательные функции ---
+  // Сохраняем в localStorage (для персистентности, приятный бонус)
+  function saveToLocalStorage() {
+    localStorage.setItem('shoppingListItems', JSON.stringify(items));
+  }
+
+  // Загружаем из localStorage
+  function loadFromLocalStorage() {
+    const saved = localStorage.getItem('shoppingListItems');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          items = parsed;
+        }
+      } catch(e) { console.warn(e); }
+    }
+    // если нет сохраненных - стартовый демо-пример для наглядности (не пустой экран)
+    if (!items.length) {
+      // Добавим пару примеров, чтобы показать возможности, но не навязчиво
+      items = [
+        { id: Date.now() + 1, name: 'Помидоры', quantity: '1 кг', purchased: false },
+        { id: Date.now() + 2, name: 'Молоко', quantity: '2 л', purchased: true },
+        { id: Date.now() + 3, name: 'Хлеб', quantity: '1 батон', purchased: false }
+      ];
+    }
+    renderList();
+  }
+
+  // Обновить счетчики (общее кол-во, куплено)
+  function updateStats() {
+    totalCountSpan.textContent = items.length;
+    const purchasedTotal = items.filter(item => item.purchased === true).length;
+    purchasedCountSpan.textContent = purchasedTotal;
+  }
+
+  // Рендер списка на экране (полный ребилд для простоты)
+  function renderList() {
+    // Очищаем контейнер
+    shoppingListEl.innerHTML = '';
+
+    if (items.length === 0) {
+      // Показываем пустое сообщение
+      const emptyLi = document.createElement('li');
+      emptyLi.className = 'empty-message';
+      emptyLi.innerHTML = '<span>📦</span> Список покупок пуст<br>➕ Добавьте товар';
+      shoppingListEl.appendChild(emptyLi);
+      updateStats();
+      return;
+    }
+
+    // Проходим по каждому элементу и создаем LI
+    items.forEach(item => {
+      const li = document.createElement('li');
+      li.className = 'list-item';
+      if (item.purchased) {
+        li.classList.add('purchased');
+      }
+      li.dataset.id = item.id;
+
+      // Левая часть с чекбоксом и информацией
+      const itemInfoDiv = document.createElement('div');
+      itemInfoDiv.className = 'item-info';
+
+      // Чекбокс "куплено"
+      const checkWrapper = document.createElement('div');
+      checkWrapper.className = 'custom-check';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'item-checkbox';
+      checkbox.checked = item.purchased;
+      // Обработчик изменения чекбокса (отметка куплено/не куплено)
+      checkbox.addEventListener('change', (e) => {
+        e.stopPropagation();
+        togglePurchased(item.id);
+      });
+      checkWrapper.appendChild(checkbox);
+
+      // Блок с названием и количеством
+      const detailsDiv = document.createElement('div');
+      detailsDiv.className = 'item-details';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'item-name';
+      nameSpan.textContent = escapeHtml(item.name);
+
+      const quantSpan = document.createElement('span');
+      quantSpan.className = 'item-quantity';
+      // если количество не пустое, показываем, иначе "—"
+      const quantityText = (item.quantity && item.quantity.trim() !== '') ? item.quantity : 'не указано';
+      quantSpan.textContent = quantityText;
+
+      detailsDiv.appendChild(nameSpan);
+      detailsDiv.appendChild(quantSpan);
+
+      itemInfoDiv.appendChild(checkWrapper);
+      itemInfoDiv.appendChild(detailsDiv);
+
+      // Правая часть: кнопка удалить
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'item-actions';
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.innerHTML = '🗑️';
+      deleteBtn.title = 'Удалить товар';
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteItem(item.id);
+      });
+      actionsDiv.appendChild(deleteBtn);
+
+      li.appendChild(itemInfoDiv);
+      li.appendChild(actionsDiv);
+
+      shoppingListEl.appendChild(li);
+    });
+
+    updateStats();
+    saveToLocalStorage();  // сохраняем после каждого рендера
+  }
+
+  // Простейшая защита от XSS
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+      return c;
+    });
+  }
+
+  // Добавление нового товара
+  function addItem() {
+    let rawName = productNameInput.value.trim();
+    let rawQuantity = productQuantityInput.value.trim();
+
+    // Валидация: название не должно быть пустым
+    if (rawName === "") {
+      alert("Пожалуйста, укажите название товара 🛍️");
+      productNameInput.focus();
+      return false;
+    }
+
+    // Если количество пустое — сохраним как пустую строку, потом отобразим "не указано"
+    // Но можно предложить дефолтное значение, но не мешаем пользователю.
+    // Также ограничим длину
+    if (rawName.length > 60) rawName = rawName.slice(0, 60);
+    if (rawQuantity.length > 40) rawQuantity = rawQuantity.slice(0, 40);
+
+    const newItem = {
+      id: Date.now(),
+      name: rawName,
+      quantity: rawQuantity || "",   // если не заполнено, оставим пустым — в рендере покажем "не указано"
+      purchased: false
+    };
+
+    items.push(newItem);
+    renderList();
+
+    // Очищаем поля, фокус на товар
+    productNameInput.value = "";
+    productQuantityInput.value = "";
+    productNameInput.focus();
+    return true;
+  }
+
+  // Отметка "куплено" / снять отметку
+  function togglePurchased(id) {
+    const item = items.find(i => i.id === id);
+    if (item) {
+      item.purchased = !item.purchased;
+      renderList();   // обновляем интерфейс
+    }
+  }
+
+  // Удаление элемента
+  function deleteItem(id) {
+    // Фильтруем массив, удаляем элемент с таким id
+    items = items.filter(item => item.id !== id);
+    renderList();
+    // После удаления показываем сообщение, если пусто — оно само появится
+    if (items.length === 0) {
+      // дополнительно фокус на поле
+      productNameInput.focus();
+    }
+  }
+
+  // Обработчики событий: кнопка добавить, а также Enter на полях
+  function setupEventListeners() {
+    addBtn.addEventListener('click', () => {
+      addItem();
+    });
+
+    // Добавление по нажатию Enter в любом из полей ввода
+    productNameInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addItem();
+      }
+    });
+    productQuantityInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addItem();
+      }
+    });
+  }
+
+  // Инициализация приложения: загружаем данные из localStorage + стартовые примеры если нет,
+  // рендерим и навешиваем обработчики
+  function init() {
+    const stored = localStorage.getItem('shoppingListItems');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length) {
+          items = parsed;
+        } else {
+          // если сохраненный массив пустой, добавим демо-примеры (не обязательно, но для наглядности)
+          if (parsed && parsed.length === 0) {
+            items = [];
+          } else {
+            items = [];
+          }
+        }
+      } catch(e) { items = []; }
+    }
+    // Если нет сохраненных данных или items пуст после загрузки — использовать демо-примеры, 
+    // только если items действительно пустой (пользователь мог специально очистить всё)
+    if (items.length === 0 && !stored) {
+      items = [
+        { id: Date.now() + 100, name: 'Морковь', quantity: '500 г', purchased: false },
+        { id: Date.now() + 101, name: 'Сыр', quantity: '200 г', purchased: false },
+        { id: Date.now() + 102, name: 'Куриное филе', quantity: '1 упаковка', purchased: true }
+      ];
+    } else if (items.length === 0 && stored) {
+      // если пользователь очистил список полностью и перезагрузил - останется пусто, но это корректно.
+      // не добавляем демо, чтобы сохранить поведение очистки. Однако добавим дружелюбное сообщение через рендер.
+    }
+    renderList();
+    setupEventListeners();
+  }
+
+  // Дополнительно: если кто-то захочет очистить (но у нас есть удаление каждого элемента),
+  // также добавим автоматическую фокусировку при загрузке
+  init();
+</script>
+</body>
+</html>
