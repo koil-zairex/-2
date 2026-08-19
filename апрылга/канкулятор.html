@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Smart Shopping — Списки, цены, скидки, темы</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    /* ----- Светлая тема (по умолчанию) ----- */
+    :root {
+      --bg-page: #f0f4f8;
+      --card-bg: #ffffff;
+      --text-primary: #1e2a3a;
+      --text-secondary: #2c3e50;
+      --text-muted: #5a6e7c;
+      --border-light: #e2e8f0;
+      --accent: #2c7da0;
+      --accent-hover: #1f5e7a;
+      --danger: #e07c6c;
+      --danger-hover: #c95a48;
+      --success: #2e8b57;
+      --success-light: #e9f5ef;
+      --item-bg: #fdfdfd;
+      --item-hover: #f7fafc;
+      --placeholder: #94a3b8;
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+      --header-gradient: linear-gradient(135deg, #1e3c4c 0%, #2c5a6e 100%);
+    }
+
+    /* ----- Тёмная тема ----- */
+    body.dark {
+      --bg-page: #121826;
+      --card-bg: #1e293b;
+      --text-primary: #eef2ff;
+      --text-secondary: #cbd5e6;
+      --text-muted: #94a3b8;
+      --border-light: #334155;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --danger: #f87171;
+      --danger-hover: #ef4444;
+      --success: #4ade80;
+      --success-light: #1e3a2f;
+      --item-bg: #0f172a;
+      --item-hover: #1e293b;
+      --placeholder: #5b6e8c;
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --header-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+
+    body {
+      background: var(--bg-page);
+      color: var(--text-primary);
+      font-family: system-ui, -apple-system, 'Segoe UI', 'Inter', sans-serif;
+      padding: 1.5rem;
+      min-height: 100vh;
+    }
+
+    /* главный контейнер */
+    .app-container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    /* верхняя панель: тема + управление списками */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      background: var(--card-bg);
+      padding: 0.8rem 1.5rem;
+      border-radius: 2rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .lists-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .list-selector {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg-page);
+      padding: 0.3rem 1rem;
+      border-radius: 2rem;
+    }
+
+    select {
+      background: var(--card-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--border-light);
+      padding: 0.5rem 1rem;
+      border-radius: 1.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+    }
+
+    button.icon-btn {
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+    }
+
+    button.secondary {
+      background: var(--text-muted);
+    }
+
+    .theme-toggle {
+      background: var(--bg-page);
+      border: 1px solid var(--border-light);
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* карточка активного списка */
+    .shopping-card {
+      background: var(--card-bg);
+      border-radius: 1.8rem;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    /* редактируемый заголовок списка */
+    .list-header {
+      background: var(--header-gradient);
+      padding: 1.2rem 1.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .list-title-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .list-title {
+      font-size: 1.7rem;
+      font-weight: 700;
+      background: transparent;
+      border: none;
+      color: white;
+      padding: 0.2rem 0.5rem;
+      border-radius: 1rem;
+      width: auto;
+      min-width: 180px;
+      font-weight: 600;
+    }
+
+    .list-title:focus {
+      outline: none;
+      background: rgba(255,255,255,0.2);
+    }
+
+    .edit-title-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      border-radius: 2rem;
+      padding: 0.3rem 0.8rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    /* форма добавления */
+    .add-form {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      align-items: flex-end;
+    }
+
+    .field {
+      flex: 1;
+      min-width: 130px;
+    }
+
+    .field label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .field input {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      border-radius: 1rem;
+      border: 1px solid var(--border-light);
+      background: var(--item-bg);
+      color: var(--text-primary);
+    }
+
+    .btn-add {
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 0.7rem 1.4rem;
+      border-radius: 2rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* список товаров */
+    .items-container {
+      padding: 1rem;
+    }
+
+    .stats {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding: 0.5rem 0.8rem;
+      background: var(--bg-page);
+      border-radius: 1.2rem;
+    }
+
+    .total-cost {
+      font-weight: 700;
+      font-size: 1.1rem;
+      background: var(--success-light);
+      padding: 0.2rem 0.8rem;
+      border-radius: 2rem;
+    }
+
+    .shopping-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+
+    .list-item {
+      background: var(--item-bg);
+      border: 1px solid var(--border-light);
+      border-radius: 1.2rem;
+      padding: 0.8rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.7rem;
+    }
+
+    .item-main {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      flex: 3;
+    }
+
+    .item-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .item-name {
+      font-weight: 600;
+    }
+
+    .item-quantity {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .price-block {
+      display: flex;
+      gap: 0.6rem;
+      align-items: baseline;
+      flex-wrap: wrap;
+      background: var(--bg-page);
+      padding: 0.3rem 0.8rem;
+      border-radius: 2rem;
+    }
+
+    .price, .final-price {
+      font-size: 0.9rem;
+    }
+
+    .discount-badge {
+      background: var(--danger);
+      color: white;
+      border-radius: 1rem;
+      padding: 0.1rem 0.5rem;
+      font-size: 0.7rem;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 0.3rem;
+    }
+
+    .delete-item, .toggle-purchased {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0.3rem;
+      border-radius: 1rem;
+    }
+
+    .purchased .item-name {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 760px) {
+      body { padding: 1rem; }
+      .add-form { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <div class="top-bar">
+    <div class="lists-controls">
+      <div class="list-selector">
+        <span>📋 Список:</span>
+        <select id="listSelector"></select>
+        <button id="newListBtn" class="icon-btn">➕ Новый</button>
+        <button id="deleteListBtn" class="icon-btn secondary">🗑 Удалить</button>
+      </div>
+    </div>
+    <button id="themeToggle" class="theme-toggle">🌓 Тёмная/Светлая</button>
+  </div>
+
+  <div class="shopping-card">
+    <div class="list-header">
+      <div class="list-title-wrapper">
+        <input type="text" id="listTitleInput" class="list-title" value="Мои покупки">
+        <button id="editTitleBtn" class="edit-title-btn">✏️</button>
+      </div>
+      <div class="global-discount">
+        <label style="color:white; font-size:0.8rem;">💸 Скидка на всё (%):</label>
+        <input type="number" id="globalDiscount" min="0" max="100" step="1" value="0" style="width:70px; border-radius:1rem; padding:0.3rem;">
+      </div>
+    </div>
+
+    <div class="add-form">
+      <div class="field"><label>Товар</label><input type="text" id="itemName" placeholder="Хлеб"></div>
+      <div class="field"><label>Кол-во</label><input type="text" id="itemQty" placeholder="2 шт"></div>
+      <div class="field"><label>Цена (₽)</label><input type="number" id="itemPrice" placeholder="0" step="any" value="0"></div>
+      <div class="field"><label>Скидка %</label><input type="number" id="itemDiscount" placeholder="0" min="0" max="100" value="0"></div>
+      <button id="addItemBtn" class="btn-add">➕ Добавить</button>
+    </div>
+
+    <div class="items-container">
+      <div class="stats">
+        <span>📦 Всего: <strong id="totalItems">0</strong></span>
+        <span>✅ Куплено: <strong id="purchasedItems">0</strong></span>
+        <span class="total-cost" id="totalCostDisplay">💰 Итого: 0 ₽</span>
+      </div>
+      <ul class="shopping-list" id="shoppingList"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- СТРУКТУРА ДАННЫХ ----------
+  // Список списков: { id, title, items, globalDiscountPercent }
+  let shoppingLists = [];
+  let activeListId = null;
+
+  // DOM
+  const listSelector = document.getElementById('listSelector');
+  const newListBtn = document.getElementById('newListBtn');
+  const deleteListBtn = document.getElementById('deleteListBtn');
+  const themeToggle = document.getElementById('themeToggle');
+  const listTitleInput = document.getElementById('listTitleInput');
+  const editTitleBtn = document.getElementById('editTitleBtn');
+  const globalDiscountInput = document.getElementById('globalDiscount');
+  const addItemBtn = document.getElementById('addItemBtn');
+  const itemName = document.getElementById('itemName');
+  const itemQty = document.getElementById('itemQty');
+  const itemPrice = document.getElementById('itemPrice');
+  const itemDiscount = document.getElementById('itemDiscount');
+  const shoppingListEl = document.getElementById('shoppingList');
+  const totalItemsSpan = document.getElementById('totalItems');
+  const purchasedItemsSpan = document.getElementById('purchasedItems');
+  const totalCostDisplay = document.getElementById('totalCostDisplay');
+
+  // --- Загрузка / сохранение в localStorage ---
+  function saveData() {
+    const data = { lists: shoppingLists, activeId: activeListId };
+    localStorage.setItem('smartShoppingData', JSON.stringify(data));
+  }
+
+  function loadData() {
+    const raw = localStorage.getItem('smartShoppingData');
+    if (raw) {
+      try {
+        const data = JSON.parse(raw);
+        if (data.lists && Array.isArray(data.lists)) {
+          shoppingLists = data.lists;
+          activeListId = data.activeId;
+          // валидация активного списка
+          if (!shoppingLists.find(l => l.id === activeListId) && shoppingLists.length) activeListId = shoppingLists[0].id;
+        }
+      } catch(e) { console.warn(e); }
+    }
+    if (!shoppingLists.length) {
+      // начальные демо-списки с ценами
+      shoppingLists = [
+        {
+          id: 'list1',
+          title: 'Продукты',
+          globalDiscountPercent: 0,
+          items: [
+            { id: 'i1', name: 'Молоко', quantity: '1 л', price: 89, discountPercent: 0, purchased: false },
+            { id: 'i2', name: 'Сыр', quantity: '200 г', price: 250, discountPercent: 10, purchased: false },
+            { id: 'i3', name: 'Яблоки', quantity: '1 кг', price: 120, discountPercent: 0, purchased: true }
+          ]
+        },
+        {
+          id: 'list2',
+          title: 'Бытовая химия',
+          globalDiscountPercent: 5,
+          items: [
+            { id: 'i4', name: 'Порошок', quantity: '1 уп.', price: 450, discountPercent: 0, purchased: false },
+            { id: 'i5', name: 'Средство для мытья', quantity: '500 мл', price: 320, discountPercent: 15, purchased: false }
+          ]
+        }
+      ];
+      activeListId = shoppingLists[0].id;
+    }
+    if (!activeListId && shoppingLists.length) activeListId = shoppingLists[0].id;
+    renderAll();
+  }
+
+  // --- Рендер UI ---
+  function renderAll() {
+    renderListSelector();
+    renderCurrentList();
+    saveData();
+  }
+
+  function renderListSelector() {
+    listSelector.innerHTML = '';
+    shoppingLists.forEach(list => {
+      const option = document.createElement('option');
+      option.value = list.id;
+      option.textContent = list.title;
+      if (list.id === activeListId) option.selected = true;
+      listSelector.appendChild(option);
+    });
+    // показать/скрыть кнопку удалить
+    deleteListBtn.disabled = shoppingLists.length <= 1;
+  }
+
+  function getActiveList() {
+    return shoppingLists.find(l => l.id === activeListId);
+  }
+
+  // подсчет финальной цены товара с учетом персональной скидки и глобальной скидки списка
+  function calculateFinalPrice(price, itemDiscountPercent, globalPercent) {
+    let afterItem = price * (1 - itemDiscountPercent / 100);
+    let afterGlobal = afterItem * (1 - globalPercent / 100);
+    return Math.round(afterGlobal * 100) / 100;
+  }
+
+  function renderCurrentList() {
+    const list = getActiveList();
+    if (!list) {
+      shoppingListEl.innerHTML = '<div class="empty-message">❌ Список не найден</div>';
+      return;
+    }
+    listTitleInput.value = list.title;
+    globalDiscountInput.value = list.globalDiscountPercent || 0;
+
+    const items = list.items || [];
+    totalItemsSpan.textContent = items.length;
+    const purchasedCount = items.filter(i => i.purchased).length;
+    purchasedItemsSpan.textContent = purchasedCount;
+
+    // подсчет общей суммы (только для НЕкупленных? обычно сумма планируемых расходов. Но покажем все позиции, но купленные обычно потрачено. Для информативности: общая сумма всех товаров с учетом скидок)
+    let totalSum = 0;
+    items.forEach(item => {
+      const finalPrice = calculateFinalPrice(item.price, item.discountPercent || 0, list.globalDiscountPercent || 0);
+      totalSum += finalPrice;
+    });
+    totalCostDisplay.innerHTML = `💰 Итого: ${totalSum.toFixed(2)} ₽`;
+
+    if (items.length === 0) {
+      shoppingListEl.innerHTML = '<div class="empty-message">🛒 Добавьте первый товар с ценой</div>';
+      return;
+    }
+
+    shoppingListEl.innerHTML = '';
+    items.forEach(item => {
+      const li = document.createElement('li');
+      li.className = 'list-item';
+      if (item.purchased) li.classList.add('purchased');
+
+      const finalPrice = calculateFinalPrice(item.price, item.discountPercent || 0, list.globalDiscountPercent || 0);
+      const originalPrice = item.price;
+      const hasItemDiscount = (item.discountPercent || 0) > 0;
+      const hasGlobal = (list.globalDiscountPercent || 0) > 0;
+
+      li.innerHTML = `
+        <div class="item-main">
+          <input type="checkbox" class="purchase-checkbox" data-id="${item.id}" ${item.purchased ? 'checked' : ''}>
+          <div class="item-info">
+            <span class="item-name">${escapeHtml(item.name)}</span>
+            <span class="item-quantity">${escapeHtml(item.quantity || '—')}</span>
+          </div>
+          <div class="price-block">
+            ${originalPrice > 0 ? `<span class="price">${originalPrice} ₽</span>` : ''}
+            ${hasItemDiscount ? `<span class="discount-badge">-${item.discountPercent}%</span>` : ''}
+            ${hasGlobal ? `<span class="discount-badge">скидка списка -${list.globalDiscountPercent}%</span>` : ''}
+            <span class="final-price"><strong>${finalPrice.toFixed(2)} ₽</strong></span>
+          </div>
+        </div>
+        <div class="item-actions">
+          <button class="delete-item" data-id="${item.id}" title="Удалить">🗑️</button>
+        </div>
+      `;
+      shoppingListEl.appendChild(li);
+
+      const chk = li.querySelector('.purchase-checkbox');
+      chk.addEventListener('change', (e) => {
+        togglePurchased(item.id);
+      });
+      const delBtn = li.querySelector('.delete-item');
+      delBtn.addEventListener('click', () => deleteItem(item.id));
+    });
+  }
+
+  function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+  // --- CRUD для товаров ---
+  function addNewItem() {
+    const list = getActiveList();
+    if (!list) return;
+    const name = itemName.value.trim();
+    if (!name) { alert('Введите название товара'); return; }
+    const quantity = itemQty.value.trim() || '';
+    let price = parseFloat(itemPrice.value);
+    if (isNaN(price)) price = 0;
+    let disc = parseInt(itemDiscount.value);
+    if (isNaN(disc)) disc = 0;
+    if (disc < 0) disc = 0; if (disc > 100) disc = 100;
+
+    const newItem = {
+      id: Date.now() + Math.random(),
+      name: name,
+      quantity: quantity,
+      price: price,
+      discountPercent: disc,
+      purchased: false
+    };
+    list.items.push(newItem);
+    // очистка полей
+    itemName.value = '';
+    itemQty.value = '';
+    itemPrice.value = '';
+    itemDiscount.value = '0';
+    renderAll();
+    itemName.focus();
+  }
+
+  function togglePurchased(itemId) {
+    const list = getActiveList();
+    if (!list) return;
+    const item = list.items.find(i => i.id == itemId);
+    if (item) { item.purchased = !item.purchased; renderAll(); }
+  }
+
+  function deleteItem(itemId) {
+    const list = getActiveList();
+    if (list) {
+      list.items = list.items.filter(i => i.id != itemId);
+      renderAll();
+    }
+  }
+
+  // --- Управление списками ---
+  function createNewList() {
+    const newId = 'list_' + Date.now();
+    const newTitle = `Список ${shoppingLists.length + 1}`;
+    shoppingLists.push({
+      id: newId,
+      title: newTitle,
+      globalDiscountPercent: 0,
+      items: []
+    });
+    activeListId = newId;
+    renderAll();
+  }
+
+  function deleteCurrentList() {
+    if (shoppingLists.length <= 1) { alert('Нельзя удалить последний список'); return; }
+    const index = shoppingLists.findIndex(l => l.id === activeListId);
+    if (index !== -1) shoppingLists.splice(index, 1);
+    activeListId = shoppingLists[0].id;
+    renderAll();
+  }
+
+  function changeActiveList(e) {
+    activeListId = e.target.value;
+    renderAll();
+  }
+
+  function editListTitle() {
+    const newTitle = prompt('Новое название списка', getActiveList()?.title);
+    if (newTitle && newTitle.trim()) {
+      getActiveList().title = newTitle.trim().substring(0, 40);
+      renderAll();
+    }
+  }
+
+  function updateGlobalDiscount() {
+    const list = getActiveList();
+    if (list) {
+      let val = parseFloat(globalDiscountInput.value);
+      if (isNaN(val)) val = 0;
+      val = Math.min(100, Math.max(0, val));
+      list.globalDiscountPercent = val;
+      renderAll();
+    }
+  }
+
+  // --- ТЕМА (тёмная/светлая) ---
+  function initTheme() {
+    const savedTheme = localStorage.getItem('shoppingTheme');
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+  }
+  function toggleTheme() {
+    document.body.classList.toggle('dark');
+    const isDark = document.body.classList.contains('dark');
+    localStorage.setItem('shoppingTheme', isDark ? 'dark' : 'light');
+  }
+
+  // --- Events ---
+  function bindEvents() {
+    newListBtn.addEventListener('click', createNewList);
+    deleteListBtn.addEventListener('click', deleteCurrentList);
+    listSelector.addEventListener('change', changeActiveList);
+    editTitleBtn.addEventListener('click', editListTitle);
+    globalDiscountInput.addEventListener('input', updateGlobalDiscount);
+    addItemBtn.addEventListener('click', addNewItem);
+    themeToggle.addEventListener('click', toggleTheme);
+    // Enter на полях
+    itemName.addEventListener('keypress', (e) => { if(e.key === 'Enter') addNewItem(); });
+    itemPrice.addEventListener('keypress', (e) => { if(e.key === 'Enter') addNewItem(); });
+  }
+
+  // --- Инициализация ---
+  loadData();
+  initTheme();
+  bindEvents();
+</script>
+</body>
+</html>
